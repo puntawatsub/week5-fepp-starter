@@ -174,10 +174,7 @@ const AddJobPage = () => {
     };
 
     try {
-      // 5. Use Environment Variable (fallback to localhost if not set)
-      const apiUrl = "";
-
-      const res = await fetch(`${apiUrl}/api/jobs`, {
+      const res = await fetch(`/api/jobs`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newJob),
