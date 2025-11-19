@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const EditJobPage = () => {
   const { id } = useParams();
@@ -42,13 +42,50 @@ const EditJobPage = () => {
     fetchJob();
   }, [id]);
 
-  const submitForm = (e) => {
+  const submitForm = async (e) => {
     e.preventDefault();
     console.log("EditJobPage");
+
+    // Construct the updated job object from state
+    const updatedJob = {
+      title,
+      type,
+      description,
+      location,
+      salary: Number(salary), // Ensure salary is a number if expected by the backend
+      company: {
+        name: companyName,
+        contactEmail,
+        contactPhone,
+      },
+    };
+
+    try {
+      const res = await fetch(`/api/jobs/${id}`, {
+        method: "PUT", // Use PUT method for update
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedJob),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to update job: ${res.status}`);
+      }
+      
+      // Navigate to the job details page after a successful update
+      navigate(`/jobs/${id}`);
+    } catch (error) {
+      console.error("Error updating job:", error);
+      // The test expects console.error to be called on failure, but no navigation.
+    }
   };
 
   const cancelEdit = () => {
     console.log("cancelEdit");
+    
+    // Navigate back to the job details page
+    navigate(`/jobs/${id}`);
   };
 
   return (
