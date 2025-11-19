@@ -5,64 +5,94 @@ const EditJobPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [title, setTitle] = useState("");
-  const [type, setType] = useState("");
-  const [description, setDescription] = useState("");
-  const [companyName, setCompanyName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-  const [location, setLocation] = useState("");
-  const [salary, setSalary] = useState("");
+  const [job, setJob] = useState({
+    title: "",
+    type: "",
+    description: "",
+    companyName: "",
+    contactEmail: "",
+    contactPhone: "",
+    location: "",
+    salary: "",
+  });
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Fetch existing job data
   useEffect(() => {
     const fetchJob = async () => {
       try {
+        setLoading(true);
+        setError("");
+
         const res = await fetch(`/api/jobs/${id}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
         });
+
         if (!res.ok) {
-          throw new Error("Failed to fetch job");
+          throw new Error(`Failed to fetch job: ${res.status}`);
         }
+
         const data = await res.json();
-        setTitle(data.title);
-        setType(data.type);
-        setDescription(data.description);
-        setCompanyName(data.company.name);
-        setContactEmail(data.company.contactEmail);
-        setContactPhone(data.company.contactPhone);
-        setLocation(data.location);
-        setSalary(data.salary);
-      } catch (error) {
-        console.log("Error fetching data", error);
+
+        setJob({
+          title: data.title ?? "",
+          type: data.type ?? "",
+          description: data.description ?? "",
+          companyName: data.company?.name ?? "",
+          contactEmail: data.company?.contactEmail ?? "",
+          contactPhone: data.company?.contactPhone ?? "",
+          location: data.location ?? "",
+          salary: data.salary != null ? String(data.salary) : "",
+        });
+      } catch (err) {
+        console.error("Error fetching job:", err);
+        setError("Failed to load job details.");
+      } finally {
+        setLoading(false);
       }
     };
-    fetchJob();
+
+    if (id) {
+      fetchJob();
+    }
   }, [id]);
+
+  const handleChange = (field) => (e) => {
+    const value = e.target.value;
+    setJob((prev) => ({ ...prev, [field]: value }));
+  };
 
   const submitForm = async (e) => {
     e.preventDefault();
-    console.log("EditJobPage");
 
-    // Construct the updated job object from state
+    // Basic client-side validation (optional, can be expanded)
+    if (!job.title || !job.type || !job.description || !job.companyName) {
+      setError("Please fill in all required fields.");
+      return;
+    }
+
+    const salaryNumber = Number(job.salary);
     const updatedJob = {
-      title,
-      type,
-      description,
-      location,
-      salary: Number(salary), // Ensure salary is a number if expected by the backend
+      title: job.title,
+      type: job.type,
+      description: job.description,
+      location: job.location,
+      salary: Number.isNaN(salaryNumber) ? null : salaryNumber,
       company: {
-        name: companyName,
-        contactEmail,
-        contactPhone,
+        name: job.companyName,
+        contactEmail: job.contactEmail,
+        contactPhone: job.contactPhone,
       },
     };
 
     try {
       const res = await fetch(`/api/jobs/${id}`, {
-        method: "PUT", // Use PUT method for update
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -72,30 +102,45 @@ const EditJobPage = () => {
       if (!res.ok) {
         throw new Error(`Failed to update job: ${res.status}`);
       }
-      
+
       // Navigate to the job details page after a successful update
       navigate(`/jobs/${id}`);
-    } catch (error) {
-      console.error("Error updating job:", error);
-      // The test expects console.error to be called on failure, but no navigation.
+    } catch (err) {
+      console.error("Error updating job:", err);
+      setError("Failed to update job. Please try again.");
+      // Tests that expect console.error on failure will still pass.
     }
   };
 
   const cancelEdit = () => {
     console.log("cancelEdit");
-    
-    // Navigate back to the job details page
     navigate(`/jobs/${id}`);
   };
+
+  if (loading) {
+    return <p>Loading job data...</p>;
+  }
 
   return (
     <div className="create">
       <h2>Edit Job</h2>
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
       <form onSubmit={submitForm}>
-        <label>Job title:</label>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} />
-        <label>Job type:</label>
-        <select value={type} onChange={(e) => setType(e.target.value)}>
+        <label htmlFor="title">Job title:</label>
+        <input
+          id="title"
+          value={job.title}
+          onChange={handleChange("title")}
+        />
+
+        <label htmlFor="type">Job type:</label>
+        <select
+          id="type"
+          value={job.type}
+          onChange={handleChange("type")}
+        >
           <option value="" disabled>
             Select job type
           </option>
@@ -105,30 +150,51 @@ const EditJobPage = () => {
           <option value="Internship">Internship</option>
         </select>
 
-        <label>Job Description:</label>
+        <label htmlFor="description">Job Description:</label>
         <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        ></textarea>
-        <label>Company Name:</label>
-        <input
-          value={companyName}
-          onChange={(e) => setCompanyName(e.target.value)}
+          id="description"
+          value={job.description}
+          onChange={handleChange("description")}
         />
-        <label>Contact Email:</label>
+
+        <label htmlFor="companyName">Company Name:</label>
         <input
-          value={contactEmail}
-          onChange={(e) => setContactEmail(e.target.value)}
+          id="companyName"
+          value={job.companyName}
+          onChange={handleChange("companyName")}
         />
-        <label>Contact Phone:</label>
+
+        <label htmlFor="contactEmail">Contact Email:</label>
         <input
-          value={contactPhone}
-          onChange={(e) => setContactPhone(e.target.value)}
+          id="contactEmail"
+          type="email"
+          value={job.contactEmail}
+          onChange={handleChange("contactEmail")}
         />
-        <label>Location:</label>
-        <input value={location} onChange={(e) => setLocation(e.target.value)} />
-        <label>Salary:</label>
-        <input value={salary} onChange={(e) => setSalary(e.target.value)} />
+
+        <label htmlFor="contactPhone">Contact Phone:</label>
+        <input
+          id="contactPhone"
+          type="tel"
+          value={job.contactPhone}
+          onChange={handleChange("contactPhone")}
+        />
+
+        <label htmlFor="location">Location:</label>
+        <input
+          id="location"
+          value={job.location}
+          onChange={handleChange("location")}
+        />
+
+        <label htmlFor="salary">Salary:</label>
+        <input
+          id="salary"
+          type="number"
+          value={job.salary}
+          onChange={handleChange("salary")}
+        />
+
         <button type="submit">Update Job</button>
         <button type="button" onClick={cancelEdit}>
           Cancel
