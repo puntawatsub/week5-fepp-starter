@@ -5,10 +5,10 @@ const JobPage = () => {
   const { id } = useParams();
   const [job, setJob] = useState(null);
 
-  useEffect( () => {
+  useEffect(() => {
     const fetchJob = async () => {
       try {
-        const res = await fetch (`/api/jobs/${id}`);
+        const res = await fetch(`/api/jobs/${id}`);
 
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
@@ -16,17 +16,24 @@ const JobPage = () => {
         const data = await res.json();
         setJob(data);
       } catch (error) {
-        console.error('Error fetching jon:', error);
+        console.error("Error fetching jon:", error);
         setJob(null);
       }
-
     };
     fetchJob();
-  },[id]);
+  }, [id]);
   const navigate = useNavigate();
 
   const deleteJob = async () => {
+    const deleted = await fetch(`/api/jobs/${id}`, {
+      method: "DELETE",
+    });
+    if (!deleted.ok) {
+      console.error(`Delete Error: Status code ${deleted.status}`);
+      return;
+    }
     console.log(JobPage);
+    navigate("/");
   };
 
   if (!job) {
