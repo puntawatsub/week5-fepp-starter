@@ -5,7 +5,7 @@ const Home = () => {
   const [jobs, setJobs] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:4000/api/jobs")
+    fetch("/api/jobs")
       .then(async (res) => {
         if (!res.ok) {
           throw new Error(`Response Status: ${res.status}`);
