@@ -165,7 +165,7 @@ const AddJobPage = () => {
       type: formData.type,
       description: formData.description,
       location: formData.location,
-      salary: Number(formData.salary), // Ensure number type
+      salary: formData.salary, // Ensure number type
       company: {
         name: formData.companyName,
         contactEmail: formData.contactEmail,
@@ -209,9 +209,8 @@ const AddJobPage = () => {
         <label htmlFor="title">Job title:</label>
         <input
           id="title"
-          name="title" // Name attribute is now required for handleChange
+          name="title" // Name attribute is now  for handleChange
           type="text"
-          required // Basic HTML5 validation
           value={formData.title}
           onChange={handleChange}
         />
@@ -232,7 +231,6 @@ const AddJobPage = () => {
         <textarea
           id="description"
           name="description"
-          required
           value={formData.description}
           onChange={handleChange}
         ></textarea>
@@ -242,7 +240,6 @@ const AddJobPage = () => {
           id="companyName"
           name="companyName"
           type="text"
-          required
           value={formData.companyName}
           onChange={handleChange}
         />
@@ -252,7 +249,6 @@ const AddJobPage = () => {
           id="contactEmail"
           name="contactEmail"
           type="email"
-          required
           value={formData.contactEmail}
           onChange={handleChange}
         />
@@ -271,7 +267,6 @@ const AddJobPage = () => {
           id="location"
           name="location"
           type="text"
-          required
           value={formData.location}
           onChange={handleChange}
         />
@@ -280,8 +275,6 @@ const AddJobPage = () => {
         <input
           id="salary"
           name="salary"
-          type="number" // Changed to number for better UI controls
-          required
           value={formData.salary}
           onChange={handleChange}
         />

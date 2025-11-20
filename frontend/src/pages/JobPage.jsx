@@ -25,15 +25,19 @@ const JobPage = () => {
   const navigate = useNavigate();
 
   const deleteJob = async () => {
-    const deleted = await fetch(`/api/jobs/${id}`, {
-      method: "DELETE",
-    });
-    if (!deleted.ok) {
-      console.error(`Delete Error: Status code ${deleted.status}`);
-      return;
+    try {
+      const deleted = await fetch(`/api/jobs/${id}`, {
+        method: "DELETE",
+      });
+      if (!deleted.ok) {
+        console.error(`Delete Error: Status code ${deleted.status}`);
+        return;
+      }
+      console.log(JobPage);
+      navigate("/");
+    } catch (err) {
+      console.error(err);
     }
-    console.log(JobPage);
-    navigate("/");
   };
 
   if (!job) {

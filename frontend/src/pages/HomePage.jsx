@@ -53,24 +53,18 @@ const Home = () => {
   const [jobs, setJobs] = useState([]);
   const [jobType, setJobType] = useState("");
 
-  // UI States for better UX
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
   useEffect(() => {
     // 1. Create an AbortController to cancel stale requests
     const controller = new AbortController();
     const signal = controller.signal;
 
     const fetchJobs = async () => {
-      setIsLoading(true);
-      setError(null);
-
       try {
         // Construct URL
-        const url = jobType ? `/api/jobs/type/${jobType}` : "/api/jobs";
+        const url = jobType !== "" ? `/api/jobs/type/${jobType}` : "/api/jobs";
 
-        const res = await fetch(url, { signal });
+        const res =
+          url === "/api/jobs" ? await fetch(url) : await fetch(url, { signal });
 
         if (!res.ok) {
           throw new Error(`Error ${res.status}: ${res.statusText}`);
@@ -82,13 +76,7 @@ const Home = () => {
         // 2. Ignore errors caused by cancelling the fetch
         if (err.name !== "AbortError") {
           console.error("Error fetching jobs:", err);
-          setError("Failed to load jobs. Please try again.");
           setJobs([]);
-        }
-      } finally {
-        // Only turn off loading if we weren't aborted
-        if (!signal.aborted) {
-          setIsLoading(false);
         }
       }
     };
@@ -118,17 +106,12 @@ const Home = () => {
 
       <div className="job-list">
         {/* 4. Handle Loading, Error, and Empty States explicitly */}
-        {isLoading && <p className="loading-msg">Loading opportunities...</p>}
 
-        {error && <p className="error-msg">{error}</p>}
+        {jobs.length === 0 && <p>No jobs found</p>}
 
-        {!isLoading && !error && jobs.length === 0 && (
-          <p>No jobs found for this category.</p>
-        )}
-
-        {!isLoading &&
-          !error &&
-          jobs.map((job) => <JobListing key={job.id} {...job} />)}
+        {jobs.map((job) => (
+          <JobListing key={job.id} {...job} />
+        ))}
       </div>
     </div>
   );
